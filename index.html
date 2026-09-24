@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Перезапуск</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap">
+<style>
+:root{--bg:#05080c;--card:#0b1219;--card2:#101923;--ink:#e8edf2;--mute:#6b7d90;--line:#1a2632;--red:#ff3b3b;--amb:#ffc107;--green:#4ade80;--blue:#3b82f6}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.7 'Inter',system-ui,-apple-system,sans-serif;overscroll-behavior:none}
+main{max-width:740px;margin:0 auto;padding:0 20px 140px}
+.hero{min-height:90vh;display:flex;flex-direction:column;justify-content:center;padding:60px 0}
+.badge{display:inline-block;background:rgba(255,59,59,.1);color:var(--red);font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:8px 14px;border-radius:20px;margin-bottom:28px;border:1px solid rgba(255,59,59,.25);align-self:flex-start}
+h1{font-size:clamp(42px,11vw,72px);line-height:.94;margin:0 0 26px;font-weight:900;letter-spacing:-.04em}
+h1 em{color:var(--red);font-style:normal}
+.hero p{font-size:20px;color:var(--mute);margin:0 0 40px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:40px 0 0;padding-top:40px;border-top:1px solid var(--line)}
+.stat b{display:block;font-size:32px;font-weight:900;color:var(--amb);line-height:1;margin-bottom:6px}
+.stat span{font-size:13px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.nav{position:sticky;top:0;background:rgba(5,8,12,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);z-index:100;padding:14px 20px;margin:0 -20px}
+.nav-inner{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav a{flex:none;font-size:13px;font-weight:500;color:var(--mute);text-decoration:none;padding:8px 14px;border-radius:20px;border:1px solid var(--line);transition:all .15s}
+.nav a.active{background:var(--red);color:#fff;border-color:var(--red)}
+section{padding:60px 0;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+.sec-label{font-size:12px;font-weight:700;color:var(--red);letter-spacing:.2em;text-transform:uppercase;margin:0 0 16px}
+h2{font-size:clamp(30px,7vw,42px);line-height:1.1;margin:0 0 18px;font-weight:900;letter-spacing:-.03em}
+h3{font-size:22px;font-weight:700;margin:32px 0 12px;line-height:1.3}
+p{margin:0 0 18px}
+.mute{color:var(--mute)}
+.accent{color:var(--amb);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;margin:16px 0}
+.card.warn{border-left:4px solid var(--red)}
+.card.info{border-left:4px solid var(--blue)}
+label{display:block;font-size:14px;font-weight:600;color:var(--mute);margin:24px 0 8px;letter-spacing:.03em}
+input[type=text],textarea{width:100%;font:inherit;font-size:17px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;transition:border-color .15s}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--red)}
+textarea{min-height:130px;resize:vertical;line-height:1.6}
+.hint{font-size:13px;color:var(--mute);margin:-4px 0 8px}
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.counter{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 12px;text-align:center}
+.counter b{display:block;font-size:38px;font-weight:900;line-height:1;color:var(--amb);margin-bottom:6px}
+.counter span{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.tracker{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0}
+.tracker button{aspect-ratio:1;background:var(--card);border:1px solid var(--line);border-radius:8px;color:var(--mute);font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;padding:0}
+.tracker button.on{background:var(--green);color:#000;border-color:var(--green)}
+.tracker button.today{border-color:var(--amb);color:var(--amb)}
+.plan-day{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:10px 0;transition:all .15s}
+.plan-day.done{opacity:.5;border-color:var(--green)}
+.plan-day input{width:24px;height:24px;margin-top:2px;flex:none;accent-color:var(--green)}
+.plan-day span{flex:1;font-size:16px}
+.plan-day b{color:var(--amb)}
+#stop{position:fixed;inset:0;background:var(--bg);z-index:9999;display:none;padding:24px 20px;overflow-y:auto;padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+#stop.on{display:block}
+#stop .inner{max-width:560px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+#stop .top{display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-size:14px;margin-bottom:24px}
+#stop .top button{background:none;border:0;color:var(--mute);font:inherit;cursor:pointer;padding:8px}
+#stop .progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:40px}
+#stop .progress i{display:block;height:100%;background:var(--red);transition:width .3s}
+#stop .content{flex:1}
+#stop .content h2{font-size:34px;line-height:1.15;margin:0 0 20px;letter-spacing:-.02em}
+#stop .content p{font-size:19px;color:#cfd8e2;line-height:1.6}
+#stop .letter{background:var(--card);border-left:4px solid var(--amb);border-radius:8px;padding:20px;font-size:17px;white-space:pre-wrap;color:#fff;line-height:1.6}
+#stop .foot{margin-top:32px;display:grid;gap:10px}
+.timer-wrap{text-align:center;padding:20px 0}
+.timer-ring{position:relative;width:220px;height:220px;margin:20px auto}
+.timer-ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.timer-ring span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.breath-circle{width:200px;height:200px;border-radius:50%;background:var(--card2);border:2px solid var(--amb);margin:30px auto;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:var(--amb);transition:transform 4s ease-in-out,background 4s ease-in-out}
+.breath-circle.inhale{transform:scale(1.3);background:rgba(255,193,7,.1)}
+.breath-circle.exhale{transform:scale(0.9)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font:inherit;font-weight:700;font-size:17px;border:0;border-radius:12px;padding:18px 32px;cursor:pointer;transition:all .15s;text-decoration:none;width:100%;text-align:center}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-gold{background:linear-gradient(135deg,var(--amb) 0%,#e6a800 100%);color:#000}
+.result{background:linear-gradient(135deg,var(--card2) 0%,var(--card) 100%);border:1px solid var(--line);border-radius:16px;padding:28px;margin:24px 0}
+.result pre{white-space:pre-wrap;font:inherit;margin:0;color:#cfd8e2;line-height:1.7}
+.price{background:linear-gradient(135deg,#1a0808 0%,#0d141c 100%);border:1px solid rgba(255,59,59,.3);border-radius:20px;padding:40px 28px;margin:40px 0;text-align:center;position:relative;overflow:hidden}
+.price:before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent)}
+.price h3{font-size:16px;color:var(--red);letter-spacing:.15em;text-transform:uppercase;margin:0 0 20px;font-weight:700}
+.price .num{font-size:56px;font-weight:900;line-height:1;margin:20px 0;letter-spacing:-.04em}
+.price .desc{color:var(--mute);margin:0 0 24px;font-size:17px}
+.price ul{list-style:none;padding:0;margin:24px 0;text-align:left}
+.price li{padding:10px 0;border-bottom:1px solid var(--line);font-size:16px;display:flex;gap:12px;align-items:flex-start}
+.price li:before{content:'✓';color:var(--green);font-weight:900;flex:none}
+.price li:last-child{border-bottom:none}
+.fab{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--red);color:#fff;border:0;border-radius:50px;padding:18px 36px;font:inherit;font-weight:900;font-size:17px;box-shadow:0 8px 32px rgba(255,59,59,.4);cursor:pointer;z-index:1000}
+.fab:active{transform:translateX(-50%) scale(.96)}
+footer{padding:50px 0;color:var(--mute);font-size:14px;line-height:1.7;border-top:1px solid var(--line);margin-top:40px}
+footer b{color:var(--ink)}
+.journal-entry{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:10px 0}
+.journal-entry .date{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.journal-entry .text{font-size:16px;line-height:1.6;white-space:pre-wrap}
+.trigger-item{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
+.trigger-item button{background:none;border:0;color:var(--red);font:inherit;cursor:pointer;padding:4px}
+</style>
+</head>
+<body>
+
+<main>
+
+<div class="hero">
+  <span class="badge">Протокол · Работает в момент срыва</span>
+  <h1>Правило есть.<br>Шага после него <em>нет</em>.</h1>
+  <p>Срыв случается в паузе между «стоп сработал» и «что теперь». Эта система закрывает паузу. Одно нажатие — и ты идёшь по шагам.</p>
+  <div class="stats">
+    <div class="stat"><b>7</b><span>шагов</span></div>
+    <div class="stat"><b>7</b><span>дней</span></div>
+    <div class="stat"><b>1</b><span>кнопка</span></div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#about" class="active">О системе</a>
+    <a href="#story">История</a>
+    <a href="#protocol">Протокол</a>
+    <a href="#tools">Инструменты</a>
+    <a href="#plan">7 дней</a>
+    <a href="#price">Доступ</a>
+  </div>
+</nav>
+
+<section id="about">
+  <p class="sec-label">Что это</p>
+  <h2>Система, а не файл</h2>
+  <p class="mute">Живой инструмент. Данные сохраняются. Прогресс виден. В момент срыва — одно нажатие.</p>
+  <div class="card info">
+    <h3 style="margin-top:0">Что внутри</h3>
+    <p><b>Режим СТОП.</b> 7 шагов: закрыть всё, выдохнуть, назвать, что ты хочешь вернуть, перечитать свою цену срыва и письмо, выдержать 10 минут, выбрать действие.</p>
+    <p><b>Утренняя проверка.</b> Подтверждение лимита. Счётчик дней подряд.</p>
+    <p><b>Дневник 30 дней.</b> Одна запись в день.</p>
+    <p><b>Трекеры сна и энергии.</b> 7 дней. Видно паттерн.</p>
+    <p><b>Карта триггеров.</b> Что запускает срыв.</p>
+    <p><b>Дыхание 4-7-8.</b> Работает в момент паники.</p>
+    <p><b>Режим тишины.</b> 10 минут без телефона.</p>
+    <p><b>Письмо в будущее.</b> Через 30 дней.</p>
+    <p><b>Экспорт.</b> Весь путь в одном файле.</p>
+  </div>
+</section>
+
+<section id="story">
+  <p class="sec-label">История</p>
+  <h2>Я знаю, о чём говорю</h2>
+  <div class="card warn">
+    <p>У меня был план: цель плюс 10% и максимум минус 5%. Пока держался — всё шло хорошо.</p>
+    <p>Потом решил, что могу больше. Нарушил правило. Потерял часть. И в голове: «Не могу так оставить. Надо что-то делать».</p>
+    <p>Я не посчитал, до какого числа могу потерять максимум. Правило было. Число было. Но я его проигнорировал. Взял всё.</p>
+    <p><b>Когда всё ушло, я сидел и смотрел в одну точку. Не на цифры. На себя. И понимал: я знал, что нельзя. Но сделал.</b></p>
+    <p>Почему? Потому что у меня было правило. Но не было шага после него. И мозг выбрал самое быстрое: отыграться.</p>
+    <p>Эта система — то, чего мне не хватило в тот вечер.</p>
+  </div>
+</section>
+
+<section id="protocol">
+  <p class="sec-label">Твой протокол</p>
+  <h2>Собери систему заранее</h2>
+  <p class="mute">Заполняй спокойно. Данные сохраняются только на этом устройстве.</p>
+
+  <label for="lim">Мой лимит</label>
+  <p class="hint">Конкретная граница, которую я не переступаю.</p>
+  <input type="text" id="lim" data-k="lim" placeholder="Например: не больше 10% в день">
+
+  <label for="mx">Мой максимум минус на день</label>
+  <p class="hint">Конкретное число, до которого я готов терять.</p>
+  <input type="text" id="mx" data-k="mx" placeholder="Например: 5% и ни шагом больше">
+
+  <label for="sig">ЕСЛИ… (мой сигнал)</label>
+  <p class="hint">Как я замечаю, что вот-вот сорвусь.</p>
+  <input type="text" id="sig" data-k="sig" placeholder="я хочу поставить больше, чем планировал">
+
+  <label for="act">ТО… (моё действие)</label>
+  <p class="hint">Одно действие, не связанное с отыгрышем.</p>
+  <input type="text" id="act" data-k="act" placeholder="я закрываю всё и выхожу на улицу на 20 минут">
+
+  <label for="cost">Моя цена срыва</label>
+  <p class="hint">Что я реально потеряю, если сорвусь.</p>
+  <textarea id="cost" data-k="cost" placeholder="Например: снова всё с нуля и месяц ничего не начинать"></textarea>
+
+  <label for="who">Кому я сообщу о срыве</label>
+  <p class="hint">Человек или заметка. Главное — чтобы срыв не остался тайной.</p>
+  <input type="text" id="who" data-k="who" placeholder="Например: заметка «срывы» в телефоне">
+
+  <label for="ltr">Письмо себе голосом друга</label>
+  <p class="hint">То, что сказал бы другу на твоём месте.</p>
+  <textarea id="ltr" data-k="ltr" placeholder="Друг, я знаю, что тебе сейчас хочется…&#10;Но ты сам знал…&#10;Сделай сейчас одно…"></textarea>
+
+  <h3>Утренняя проверка</h3>
+  <div class="card">
+    <p id="mcp" style="white-space:pre-wrap;margin-bottom:16px"></p>
+    <button class="btn btn-primary" id="mcb">Подтверждаю</button>
+    <p class="hint" id="mcs" style="margin-top:12px"></p>
+  </div>
+
+  <h3>Твой прогресс</h3>
+  <div class="counters">
+    <div class="counter"><b id="h">0</b><span>стопов</span></div>
+    <div class="counter"><b id="b">0</b><span>срывов</span></div>
+    <div class="counter"><b id="d">0</b><span>дней</span></div>
+  </div>
+</section>
+
+<section id="tools">
+  <p class="sec-label">Инструменты</p>
+  <h2>Что работает каждый день</h2>
+
+  <h3>Дневник 30 дней</h3>
+  <p class="mute">Одна запись в день. Что чувствовал. Что помогло.</p>
+  <textarea id="journal" placeholder="Сегодня я…" style="min-height:100px"></textarea>
+  <button class="btn btn-primary" id="saveJournal" style="margin-top:12px">Сохранить запись</button>
+  <div id="journalList" style="margin-top:20px"></div>
+
+  <h3>Трекер сна</h3>
+  <p class="mute">Отмечай дни, когда спал хорошо. Нажми на день.</p>
+  <div class="tracker" id="sleepTracker"></div>
+
+  <h3>Трекер энергии</h3>
+  <p class="mute">Отмечай дни, когда был в ресурсе.</p>
+  <div class="tracker" id="energyTracker"></div>
+
+  <h3>Карта триггеров</h3>
+  <p class="mute">Что запускает срыв.</p>
+  <input type="text" id="trigger" placeholder="Например: устал, один, после ссоры">
+  <button class="btn btn-secondary" id="addTrigger" style="margin-top:12px">Добавить триггер</button>
+  <div id="triggerList" style="margin-top:20px"></div>
+
+  <h3>Дыхание 4-7-8</h3>
+  <p class="mute">Вдох 4 сек. Задержка 7. Выдох 8. Три цикла.</p>
+  <button class="btn btn-primary" id="breathStart">Начать дыхание</button>
+  <div id="breathArea" style="display:none">
+    <div class="breath-circle" id="breathCircle">Готов?</div>
+  </div>
+
+  <h3>Режим тишины</h3>
+  <p class="mute">10 минут без телефона.</p>
+  <button class="btn btn-primary" id="silenceStart">Запустить 10 минут</button>
+  <div id="silenceArea" style="display:none">
+    <div class="timer-wrap">
+      <div class="timer-ring">
+        <svg viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="90" fill="none" stroke="#1a2632" stroke-width="10"/>
+          <circle id="silenceRing" cx="100" cy="100" r="90" fill="none" stroke="#4ade80" stroke-width="10" stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="0"/>
+        </svg>
+        <span id="silenceTimer">10:00</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>Письмо в будущее</h3>
+  <p class="mute">Напиши себе через 30 дней. Система откроет в нужный день.</p>
+  <textarea id="futureLetter" placeholder="Привет, я из прошлого. Через 30 дней ты…" style="min-height:100px"></textarea>
+  <button class="btn btn-primary" id="saveFuture" style="margin-top:12px">Запечатать письмо</button>
+  <div id="futureStatus" class="hint" style="margin-top:12px"></div>
+</section>
+
+<section id="plan">
+  <p class="sec-label">Возврат</p>
+  <h2>7 дней. Один шаг в день</h2>
+  <p class="mute">Не начинай с нуля. Продолжай с того места, где остановился.</p>
+  <div id="plan-list"></div>
+</section>
+
+<section id="price">
+  <div class="price">
+    <h3>Личное сопровождение</h3>
+    <div class="num">$10 000</div>
+    <p class="desc">2–5 человек. 30 дней. Я веду лично.</p>
+    <ul>
+      <li>Полная система (все модули)</li>
+      <li>Личное сопровождение 30 дней</li>
+      <li>4 личных созвона по 60 минут</li>
+      <li>Ежедневная утренняя проверка</li>
+      <li>7 аудио-разборов от меня</li>
+      <li>Экстренная связь в момент срыва</li>
+      <li>Дневник 30 дней с разбором</li>
+      <li>Пожизненный доступ к обновлениям</li>
+      <li>Гарантия возврата 14 дней</li>
+    </ul>
+    <button class="btn btn-gold" onclick="alert('Напиши ХОЧУ в Telegram — пришлю условия.')">Напиши ХОЧУ</button>
+  </div>
+</section>
+
+<section>
+  <p class="sec-label">Итог</p>
+  <h2>Твой протокол</h2>
+  <div class="result"><pre id="myc"></pre></div>
+  <button class="btn btn-secondary" id="cp" style="margin-top:16px">Скопировать протокол</button>
+</section>
+
+<footer>
+  <b>Перезапуск. Протокол срыва.</b><br>
+  Личный опыт и практические инструменты. Это не терапия, не финансовый совет и не обещание дохода.<br><br>
+  © Никита
+</footer>
+
+</main>
+
+<button class="fab" id="fab">Я на стопе</button>
+
+<div id="stop">
+  <div class="inner">
+    <div class="top">
+      <span id="sn"></span>
+      <button id="x">Закрыть</button>
+    </div>
+    <div class="progress"><i id="pg"></i></div>
+    <div class="content" id="st"></div>
+    <div class="foot" id="ft"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+function G(k){try{return localStorage.getItem('pz:'+k)||''}catch(e){return ''}}
+function S(k,v){try{localStorage.setItem('pz:'+k,v)}catch(e){}}
+function esc(s){return String(s).replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+function dk(o){var d=new Date();d.setDate(d.getDate()-o);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()}
+
+// Инпуты
+document.querySelectorAll('[data-k]').forEach(function(e){
+  e.value=G(e.dataset.k);
+  e.addEventListener('input',function(){S(e.dataset.k,e.value);card()});
+});
+
+// Счётчики
+function cnt(){
+  $('h').textContent=G('held')||0;
+  $('b').textContent=G('broke')||0;
+  var n=0,o=0;while(G('mc'+dk(o))==='1'){n++;o++}
+  $('d').textContent=n;
+}
+
+// Утренняя проверка
+function mc(){
+  var l=G('lim'),t=G('mc'+dk(0))==='1';
+  $('mcp').textContent=l?('Мой лимит: '+l+(G('mx')?'\nМаксимум минус: '+G('mx'):'')+(G('sig')?'\nЕсли '+G('sig')+', то '+(G('act')||'…'):'')):'Сначала впиши лимит выше.';
+  $('mcb').disabled=!l||t;
+  $('mcb').textContent=t?'✓ Подтверждено':'Подтверждаю';
+  var n=0,o=0;while(G('mc'+dk(o))==='1'){n++;o++}
+  $('mcs').textContent='Дней подряд: '+n;
+}
+$('mcb').addEventListener('click',function(){S('mc'+dk(0),'1');mc();cnt()});
+
+// План
+var pl=[
+'Запиши, на чём остановился и почему.',
+'Выбери одно дело, итог которого виден за день.',
+'Сделай его и запиши результат.',
+'Впиши свой лимит и сигнал выше.',
+'Напиши письмо себе.',
+'Покажи результат одному человеку.',
+'Оцени: что сработало, что менять.'
+];
+$('plan-list').innerHTML=pl.map(function(t,n){
+  return '<label class="plan-day"><input type="checkbox" data-c="'+n+'"><span><b>День '+(n+1)+'.</b> '+t+'</span></label>';
+}).join('');
+document.querySelectorAll('[data-c]').forEach(function(e){
+  e.checked=G('c'+e.dataset.c)==='1';
+  if(e.checked)e.parentElement.classList.add('done');
+  e.addEventListener('change',function(){
+    S('c'+e.dataset.c,e.checked?'1':'0');
+    e.parentElement.classList.toggle('done',e.checked);
+  });
+});
+
+// Протокол
+function card(){
+  var t='МОЙ ПРОТОКОЛ\n\n'+
+  'Мой лимит: '+(G('lim')||'—')+'\n'+
+  'Максимум минус на день: '+(G('mx')||'—')+'\n\n'+
+  'Если '+(G('sig')||'…')+',\nто '+(G('act')||'…')+'\n\n'+
+  'Цена срыва: '+(G('cost')||'—')+'\n'+
+  'О срыве я сообщу: '+(G('who')||'—')+'\n\n'+
+  'Письмо себе:\n'+(G('ltr')||'—');
+  $('myc').textContent=t;
+}
+card();mc();cnt();
+
+$('cp').addEventListener('click',function(){
+  try{navigator.clipboard.writeText($('myc').textContent);this.textContent='Скопировано';}catch(e){this.textContent='Выдели и скопируй';}
+});
+
+// Дневник
+function renderJournal(){
+  var list=$('journalList'),entries=[];
+  for(var i=0;i<30;i++){
+    var v=G('j'+dk(i));
+    if(v)entries.push({date:dk(i),text:v});
+  }
+  if(!entries.length){list.innerHTML='<p class="hint">Пока нет записей.</p>';return}
+  list.innerHTML=entries.map(function(e){
+    return '<div class="journal-entry"><div class="date">'+e.date+'</div><div class="text">'+esc(e.text)+'</div></div>';
+  }).join('');
+}
+$('saveJournal').addEventListener('click',function(){
+  var v=$('journal').value.trim();
+  if(!v)return;
+  S('j'+dk(0),v);
+  $('journal').value='';
+  renderJournal();
+});
+renderJournal();
+
+// Трекеры
+function renderTracker(el,key){
+  var h='';
+  for(var i=6;i>=0;i--){
+    var d=dk(i);
+    var on=G(key+d)==='1';
+    var today=i===0?' today':'';
+    h+='<button class="'+(on?'on':'')+today+'" data-key="'+key+'" data-d="'+d+'">'+d.slice(-2)+'</button>';
+  }
+  el.innerHTML=h;
+  el.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.dataset.key+b.dataset.d;
+      S(k,G(k)==='1'?'0':'1');
+      renderTracker(el,key);
+    });
+  });
+}
+renderTracker($('sleepTracker'),'sleep_');
+renderTracker($('energyTracker'),'energy_');
+
+// Триггеры
+function renderTriggers(){
+  var list=$('triggerList');
+  var arr=[];
+  for(var i=0;i<20;i++){var v=G('tr'+i);if(v)arr.push({i:i,t:v})}
+  if(!arr.length){list.innerHTML='<p class="hint">Пока нет триггеров.</p>';return}
+  list.innerHTML=arr.map(function(o){
+    return '<div class="trigger-item"><span>'+esc(o.t)+'</span><button data-i="'+o.i+'">×</button></div>';
+  }).join('');
+  list.querySelectorAll('button').forEach(function(b){
+    b.addEventListener('click',function(){
+      try{localStorage.removeItem('pz:tr'+b.dataset.i)}catch(e){}
+      renderTriggers();
+    });
+  });
+}
+$('addTrigger').addEventListener('click',function(){
+  var v=$('trigger').value.trim();
+  if(!v)return;
+  for(var i=0;i<20;i++){if(!G('tr'+i)){S('tr'+i,v);break}}
+  $('trigger').value='';
+ 
